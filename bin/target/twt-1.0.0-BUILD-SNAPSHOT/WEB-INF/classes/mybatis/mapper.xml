@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="twt">
+
+	<!-- ================================용훈================================== -->
+
+
+
+	<!-- ================================범식================================== -->
+
+
+	<resultMap type="Hotel" id="hotelMap">
+		<result property="h_Code" column="H_CODE" />
+		<result property="city_Code" column="CITY_CODE" />
+		<result property="h_Name" column="H_NAME" />
+		<result property="h_Lati" column="H_LATI" />
+		<result property="h_Long" column="H_LONG" />
+		<result property="h_phone" column="H_PHONE" />
+		<result property="h_Basicaddr" column="H_BASICADDR" />
+		<result property="h_Addr" column="H_ADDR" />
+		<result property="h_Img" column="H_IMG" />
+		<result property="h_Content" column="H_CONTENT" />
+		<result property="h_Starn" column="H_STARN" />
+		<result property="h_Basiccontent" column="H_BASICCONTENT" />
+	</resultMap>
+
+	<!-- 호텔리스트 -->
+	<select id="HselectList" resultMap="hotelMap">
+		SELECT
+		H_CODE,CITY_CODE,H_NAME,H_LATI,H_LONG,H_PHONE,H_BASICADDR,H_ADDR,H_IMG,H_CONTENT,H_STARN,H_BASICCONTENT
+		FROM HOTEL
+
+	</select>
+
+
+
+
+
+
+
+
+	<!-- ================================도영================================== -->
+	<resultMap type="TravelSchedule" id="TravelScheduleMap">
+		<result property="ts_Code" column="TS_CODE" />
+		<result property="m_Code" column="M_CODE" />
+		<result property="tp_Code" column="TP_CODE" />
+		<result property="ts_Title" column="TS_TITLE" />
+		<result property="ts_Sday" column="TS_SDAY" />
+		<result property="ts_Theme" column="TS_THEME" />
+		<result property="ts_People" column="TS_PEOPLE" />
+		<result property="ts_Thum" column="TS_THUM" />
+		<result property="ts_Period" column="TS_PERIOD" />
+	</resultMap>
+	<select id="TS_selectList" resultMap="TravelScheduleMap">
+		SELECT * FROM
+		TRABLESCHEDULE ORDER BY TS_CODE
+	</select>
+
+
+	<!-- ================================보미================================== -->
+	<!-- 회원가입 -->
+	<insert id="insertM" parameterType="Member">
+		INSERT INTO TWTMEMBER VALUES
+		('M3' , #{m_Id}, #{m_Pass}, #{m_Name}, #{m_Email},
+		#{m_Api,jdbcType=VARCHAR}, #{m_mailcheck})
+	</insert>
+
+	<!-- 로그인 -->
+	<select id="loginM" resultType="Member">
+		SELECT * FROM TWTMEMBER WHERE
+		M_ID = #{m_Id}
+	</select>
+
+	<!-- 아이디 중복검사 -->
+	<select id="idChkM" resultType="int">
+		SELECT COUNT(*) FROM TWTMEMBER
+		WHERE M_ID = #{m_Id}
+	</select>
+
+	<!-- 네이버 로그인 -->
+	<select id="naverM" resultType="Member">
+		SELECT * FROM TWTMEMBER WHERE
+		M_ID = #{m_Id}
+	</select>
+
+	<!-- ================================찬우================================== -->
+
+
+
+	<!-- ================================수지================================== -->
+	<select id="selectcityall_S" resultType="City">
+		SELECT * FROM CITY
+	</select>
+
+
+	<!-- ================================철환================================== -->
+
+
+</mapper>
+	
+	

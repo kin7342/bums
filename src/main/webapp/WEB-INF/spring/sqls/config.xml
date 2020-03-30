@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+	<configuration>
+		<typeAliases>
+			<typeAlias type="com.fp.twt.vo.AirplaneInfoVo" alias="AirplaneInfo"/>
+			<typeAlias type="com.fp.twt.vo.AnswerVo" alias="Answer"/>
+			<typeAlias type="com.fp.twt.vo.ChatVo" alias="Chat"/>
+			<typeAlias type="com.fp.twt.vo.HotelBookingVo" alias="HotelBooking"/>
+			<typeAlias type="com.fp.twt.vo.HotelReviewVo" alias="HotelReview"/>
+			<typeAlias type="com.fp.twt.vo.HotelroomVo" alias="Hotelroom"/>
+			<typeAlias type="com.fp.twt.vo.MemberVo" alias="Member"/>
+			<typeAlias type="com.fp.twt.vo.PagingVo" alias="Paging"/>
+			<typeAlias type="com.fp.twt.vo.ScheduleReviewVo" alias="ScheduleReview"/>
+			<typeAlias type="com.fp.twt.vo.TravelPointVo" alias="TravelPoint"/>
+			<typeAlias type="com.fp.twt.vo.TravelScheduleDayVo" alias="TravelScheduleDay"/>
+			<typeAlias type="com.fp.twt.vo.TravelScheduleVo" alias="TravelSchedule"/>
+			<typeAlias type="com.fp.twt.vo.CityVo" alias="City"/>
+			<typeAlias type="com.fp.twt.vo.HotelVo" alias="Hotel"/>
+			<typeAlias type="com.fp.twt.vo.FavoriteListVo" alias="Favorite"/>
+			<typeAlias type="com.fp.twt.vo.HotelReservation" alias="HotelReservation"/>
+		</typeAliases>
+		
+		<mappers>
+			<mapper resource="/mybatis/mapper.xml"/>
+		</mappers>
+	
+	</configuration>
+	

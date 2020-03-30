@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xmlns:beans="http://www.springframework.org/schema/beans"
+   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+   ">
+
+   <!-- Root Context: defines shared resources visible to all other web components -->
+
+   <!-- db.properties -->
+   <bean
+      class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+      <property name="locations">
+         <list>
+            <value>classpath:mybatis/db.properties</value><!-- classpath : src/main/resource -->
+         </list>
+      </property>
+   </bean>
+
+   <!-- dataSource -->
+   <bean id="dataSource"
+      class="org.apache.commons.dbcp.BasicDataSource">
+      <property name="driverClassName" value="${driver}"></property>
+      <property name="url" value="${url}"></property>
+      <property name="username" value="${username}"></property>
+      <property name="password" value="${password}"></property>
+   </bean>
+
+   <!-- mybatis -->
+   <bean id="sqlSession"
+      class="org.mybatis.spring.SqlSessionFactoryBean">
+      <property name="dataSource" ref="dataSource"></property>
+      <property name="configLocation"
+         value="WEB-INF/spring/sqls/config.xml"></property>
+   </bean>
+
+   <bean id="sqlSessionTemplate"
+      class="org.mybatis.spring.SqlSessionTemplate">
+      <constructor-arg ref="sqlSession"></constructor-arg>
+   </bean>
+
+   <!-- transaction -->
+   <bean id="transactionManager"
+      class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+      <property name="dataSource" ref="dataSource"></property>
+   </bean>
+
+   <!-- Root Context: defines shared resources visible to all other web components -->
+   <bean id="multipartResolver"
+      class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+      <property name="maxUploadSize" value="10000000"></property>
+      <property name="defaultEncoding" value="UTF-8"></property>
+   </bean>
+
+   <!-- 회원가입 메일 인증 -->
+   <beans:bean id="mailSender"
+      class="org.springframework.mail.javamail.JavaMailSenderImpl">
+      <beans:property name="host" value="smtp.gmail.com" />
+      <beans:property name="port" value="587" />
+      <beans:property name="username" value="travelwithtogether@gmail.com" />
+      <beans:property name="password" value="twt123456789**" />
+      <beans:property name="defaultEncoding" value="utf-8" />
+      <beans:property name="javaMailProperties">
+         <beans:props>
+            <beans:prop key="mail.transport.protocol">smtp</beans:prop>
+            <beans:prop key="mail.smtp.auth">true</beans:prop>
+            <beans:prop key="mail.smtp.starttls.enable">true</beans:prop>
+            <beans:prop key="mail.debug">true</beans:prop>
+         </beans:props>
+      </beans:property>
+   </beans:bean>
+
+   <!-- 네이버 로그인 빈 -->
+   <beans:bean id="naverLoginBO"
+      class="com.fp.twt.common.social.NaverLoginBO" />
+
+   <!-- 구글 클래스 빈 설정 추가 -->
+   <!-- 클라이언트 ID와 보안 비밀번호 세팅 -->
+   <beans:bean id="googleConnectionFactory"
+      class="org.springframework.social.google.connect.GoogleConnectionFactory">
+      <beans:constructor-arg
+         value="689247670907-rsclincc3tlejoars0eup5ghi0rqo5un.apps.googleusercontent.com" />
+      <beans:constructor-arg
+         value="0203uUr59F_go84HyRFvmLDc" />
+   </beans:bean>
+
+	<!-- 승인된 자바스크립트 원본과 승인된 리디렉션 URI -->
+	<beans:bean id="googleOAuth2Parameters"
+		class="org.springframework.social.oauth2.OAuth2Parameters">
+		<beans:property name="scope"
+			value="https://www.googleapis.com/auth/plus.login" />
+		<beans:property name="redirectUri"
+			value="http://localhost:8787/twt/googlelogin.do" />
+	</beans:bean>
+	
+	<!-- 일정 썸네일 업로드 경로 지정 (경로 기준 : 수지)-->
+	<beans:bean id="uploadPath" class="java.lang.String">
+		<beans:constructor-arg value="C:\\Users\\gkdmd\\OneDrive\\문서\\github\\FinalProject-TwT\\TwT\\src\\main\\webapp\\resources\\images\\plan\\thumbnail"></beans:constructor-arg>
+	</beans:bean>
+</beans>

@@ -1,0 +1,514 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="twt">
+
+	<!-- ================================용훈================================== -->
+	<resultMap type="ScheduleReview" id="ScheduleReviewMap">
+		<result property="sr_Code" column="SR_CODE" />
+		<result property="m_Code" column="M_CODE" />
+		<result property="ts_Code" column="TS_CODE" />
+		<result property="sr_Title" column="SR_TITLE" />
+		<result property="sr_Content" column="SR_CONTENT" />
+		<result property="sr_ImgSrc" column="SR_IMGSRC" />
+		<result property="sr_View" column="SR_VIEW" />
+		<result property="sr_Date" column="SR_DATE" />
+	</resultMap>
+	<resultMap type="Answer" id="AnswerMap">
+		<result property="ans_Code" column="ANS_CODE" />
+		<result property="m_Code" column="M_CODE" />
+		<result property="board_Code" column="BOARD_CODE" />
+		<result property="reple_Code" column="REPLE_CODE" />
+		<result property="ans_Content" column="ANS_CONTENT" />
+		<result property="ans_Date" column="ANS_DATE" />
+	</resultMap>
+
+	<insert id="ansInsert_Y" parameterType="Answer">
+		INSERT INTO COMMUNITY_ANS
+		VALUES('AS'||AS_SEQ.NEXTVAL, #{m_Code}, #{board_Code}, #{reple_Code},
+		#{ans_Content}, SYSDATE)
+	</insert>
+
+	<select id="ansList_Y" resultMap="AnswerMap"
+		parameterType="String">
+		SELECT * FROM COMMUNITY_ANS
+		WHERE BOARD_CODE = #{sr_Code}
+		ORDER BY ANS_DATE DESC
+	</select>
+
+	<delete id="ansDelete_Y" parameterType="String">
+		DELETE FROM COMMUNITY_ANS
+		WHERE ANS_CODE = #{ans_Code}
+	</delete>
+	<insert id="insertPotoBook_Y" parameterType="ScheduleReview">
+		INSERT INTO
+		SCHEDULEREVIEW
+		VALUES('SR'||SR_SEQ.NEXTVAL, #{m_Code}, NULL,
+		#{sr_Title}, #{sr_Content}, #{sr_ImgSrc}, 0, SYSDATE)
+	</insert>
+
+	<select id="selectList_Y" resultMap="ScheduleReviewMap">
+		SELECT * FROM SCHEDULEREVIEW
+		ORDER BY SR_DATE DESC
+	</select>
+
+	<select id="potoOne_Y" parameterType="String"
+		resultType="ScheduleReview">
+		SELECT * FROM SCHEDULEREVIEW
+		WHERE SR_CODE = #{sr_Code}
+	</select>
+
+	<update id="updatePotoBook_Y" parameterType="ScheduleReview">
+		UPDATE
+		SCHEDULEREVIEW
+		SET
+		SR_TITLE = #{sr_Title},
+		SR_CONTENT = #{sr_Content},
+		SR_IMGSRC = #{sr_ImgSrc},
+		SR_DATE = SYSDATE
+		WHERE SR_CODE = #{sr_Code}
+	</update>
+
+	<delete id="deletePotoBook_Y" parameterType="String">
+		DELETE FROM
+		SCHEDULEREVIEW
+		WHERE SR_CODE = #{sr_Code}
+	</delete>
+	<!-- ================================범식================================== -->
+
+
+	<resultMap type="Hotel" id="hotelMap">
+		<result property="h_Code" column="H_CODE" />
+		<result property="city_Code" column="CITY_CODE" />
+		<result property="h_Name" column="H_NAME" />
+		<result property="h_Lati" column="H_LATI" />
+		<result property="h_Long" column="H_LONG" />
+		<result property="h_phone" column="H_PHONE" />
+		<result property="h_Basicaddr" column="H_BASICADDR" />
+		<result property="h_Addr" column="H_ADDR" />
+		<result property="h_Img" column="H_IMG" />
+		<result property="h_Content" column="H_CONTENT" />
+		<result property="h_Starn" column="H_STARN" />
+		<result property="h_Basiccontent" column="H_BASICCONTENT" />
+		<result property="min_Price" column="MIN_PRICE" />
+	</resultMap>
+
+	<!-- 호텔리스트 -->
+	<select id="HselectList" parameterType="Hotel" resultMap="hotelMap">
+		SELECT TB.*
+		FROM (
+			SELECT ROWNUM as rn, ht.*
+		<include refid="hotelInc" />
+			ORDER BY rn) TB
+		WHERE rn BETWEEN #{startIndex} AND #{endIndex}
+	</select>
+	
+	<!-- 호텔리스트 목록 개수 -->
+	<select id="HselectListCnt" resultType="Integer">
+		SELECT COUNT(*)
+		<include refid="hotelInc" />
+	</select>
+	
+	<sql id="hotelInc">
+		FROM (
+			SELECT DISTINCT hotel.*, sb.MIN_PRICE
+			FROM HOTEL hotel INNER JOIN  HOTELROOM room
+               ON hotel.H_CODE = room.H_CODE
+               INNER JOIN (SELECT MIN(HR_PRICE) AS MIN_PRICE, H_CODE FROM HOTELROOM GROUP BY H_CODE) sb
+               ON hotel.H_CODE = sb.H_CODE
+               <if test='h_Name != null and h_Name != ""'>
+               	  AND hotel.H_NAME LIKE CONCAT('%', CONCAT(#{h_Name}, '%'))
+               </if>
+               <if test='h_Starnn != null and h_Starnn != ""'>
+                  AND hotel.H_STARN IN (${h_Starnn})
+               </if>
+               <if test='hr_Breakfast != null and hr_Breakfast != ""'>
+                  AND room.HR_BREAKFAST = #{hr_Breakfast}
+               </if>
+               <if test='stt_Price != null and stt_Price != "" and end_Price != null and end_Price != ""'>
+               	  AND room.HR_PRICE BETWEEN #{stt_Price} AND #{end_Price}
+               </if>
+			ORDER BY hotel.H_CODE) ht
+	</sql>
+	
+	<!-- 디테일 리스트 -->
+	<select id="detailList_B" parameterType="String" resultType="Hotel">
+        		SELECT * FROM HOTEL LEFT JOIN HOTELROOM USING(H_CODE)
+      		WHERE H_CODE = #{h_Code}   
+    	</select>
+
+	<select id="selectOne_B" resultType="Hotel"
+		parameterType="String">
+		SELECT * FROM HOTEL WHERE H_CODE = #{h_code}
+	</select>
+
+
+
+
+
+
+
+
+	<!-- ================================도영================================== -->
+
+	<!-- 여행일정 게시판 리스트 최신 순 -->
+	<select id="selectList_D" resultType="TravelSchedule">
+		SELECT TS.TS_CODE, TS.M_CODE, TS.TP_CODE, TS.TS_TITLE, TS.TS_SDAY, TS.TS_THEME, TS.TS_PEOPLE, TS.TS_THUM, TS.TS_PERIOD, TS.TS_DATE, TS.TS_VIEW, M.M_NAME
+		FROM TRAVELSCHEDULE TS
+		LEFT JOIN TWTMEMBER M ON (TS.M_CODE = M.M_CODE) 
+		ORDER BY TS_DATE DESC
+	</select>
+
+	<!-- 여행일정 게시판 리스트 조회수 순 -->
+	<select id="PselectList_D" resultType="TravelSchedule">
+		SELECT TS.TS_CODE, TS.M_CODE, TS.TP_CODE, TS.TS_TITLE, TS.TS_SDAY, TS.TS_THEME, TS.TS_PEOPLE, TS.TS_THUM, TS.TS_PERIOD, TS.TS_DATE, TS.TS_VIEW, M.M_NAME
+		FROM TRAVELSCHEDULE TS 
+		LEFT JOIN TWTMEMBER M ON (TS.M_CODE = M.M_CODE) 
+		ORDER BY TS_VIEW DESC, TS_DATE DESC
+	</select>
+
+	<!-- 디테일 리스트 -->
+	<select id="detailList_D" parameterType="String" resultType="TravelSchedule">
+		SELECT TS.TS_CODE, TS.M_CODE, TD.TP_CODE, M.M_ID, TD.TS_DAY, TD.TS_MEMO, TD.TS_MONEY,TP.TP_NAME, TP.TP_CONTENT, TP.CITY_CODE, TP.TP_IMG, TP.TP_TYPE
+		FROM TRAVELSCHEDULE TS
+		LEFT JOIN TWTMEMBER M ON (TS.M_CODE = M.M_CODE)
+		LEFT JOIN TRAVELSCHEDULE_DAY TD ON(TS.TS_CODE = TD.TS_CODE)
+		LEFT JOIN TRAVELPOINT TP ON(TD.TP_CODE = TP.TP_CODE)
+		WHERE TS.TS_CODE = #{ts_Code}
+		ORDER BY TD.TS_DAY ASC
+	</select>
+
+	<!-- 여행 일정 디테일 -->	
+	<select id="selectOne_D" parameterType="String" resultType="TravelSchedule">
+		SELECT TS.TS_CODE, TS.M_CODE, TS.TS_TITLE, TS.TS_SDAY, TS.TS_THEME, TS.TS_PEOPLE, TS.TS_PERIOD, TS.TS_DATE, TS.TS_VIEW, M.M_NAME
+		FROM TRAVELSCHEDULE TS 
+		LEFT JOIN TWTMEMBER M ON (TS.M_CODE = M.M_CODE) 
+		WHERE TS.TS_CODE = #{ts_Code}
+	</select>
+	
+	<!-- 연관 일정 -->
+	<select id="themeList_D" parameterType="String" resultType="TravelSchedule">
+		SELECT TS.TS_CODE, TS.M_CODE, TS.TP_CODE, TS.TS_TITLE, TS.TS_SDAY, TS.TS_THEME, TS.TS_PERIOD, TS.TS_PEOPLE, TS.TS_THUM, TS.TS_DATE, TS.TS_VIEW, M.M_NAME
+		FROM TRAVELSCHEDULE TS 
+		LEFT JOIN TWTMEMBER M ON (TS.M_CODE = M.M_CODE) 
+		WHERE TS.TS_THEME = #{ts_Theme}
+		ORDER BY TS_VIEW DESC, TS_DATE DESC
+	</select>
+	
+	<select id="relList_D" parameterType="String" resultType="TravelSchedule">
+		SELECT TS.TS_CODE, TS.M_CODE, TS.TP_CODE, TS.TS_TITLE, TS.TS_SDAY, TS.TS_THEME, TS.TS_PERIOD, TS.TS_PEOPLE, TS.TS_THUM, TS.TS_DATE, TS.TS_VIEW, M.M_NAME
+		FROM TRAVELSCHEDULE TS 
+		LEFT JOIN TWTMEMBER M ON (TS.M_CODE = M.M_CODE) 
+		WHERE TS.TS_THEME = #{ts_Theme} AND TS.TS_CODE != #{ts_Code}
+		ORDER BY TS_VIEW DESC, TS_DATE DESC
+	</select>
+	
+	<!-- 조회 수 -->
+	<update id="viewCnt_D" parameterType="String">
+		UPDATE TRAVELSCHEDULE
+		SET TS_VIEW = TS_VIEW + 1 
+		WHERE TS_CODE = #{ts_Code}
+	</update>
+	
+	<!-- 찜 -->
+	<!-- 찜 데이터 여부 체크 -->
+	<select id="fListChk_D" parameterType="String" resultType="Favorite">
+		SELECT FL_CODE, M_CODE, FL_CHECK
+		FROM FAVORITE_LIST
+		WHERE FL_CODE = #{fl_Code} AND M_CODE = #{m_Code}
+	</select>
+	
+	<select id="chkList" resultType="Favorite">
+		SELECT FL_CODE, M_CODE, FL_CHECK
+		FROM FAVORITE_LIST
+		WHERE M_CODE = #{m_Code} AND FL_CHECK = 'Y'
+	</select>
+	
+	<!-- 찜 데이터 INSERT -->
+	<insert id="fList_D" parameterType="Favorite">
+		INSERT INTO FAVORITE_LIST 
+		VALUES (#{fl_Code}, #{m_Code}, 'Y')
+	</insert>
+	
+	<!-- 찜 여부 Y로 변경 -->
+	<update id="fListY_D" parameterType="String">
+		UPDATE FAVORITE_LIST
+		SET FL_CHECK = 'Y'
+		WHERE FL_CODE = #{fl_Code} AND M_CODE = #{m_Code}
+	</update>
+	
+	<!-- 찜 여부 N으로 변경 -->
+	<update id="fListN_D" parameterType="String">
+		UPDATE FAVORITE_LIST
+		SET FL_CHECK = 'N'
+		WHERE FL_CODE = #{fl_Code} AND M_CODE = #{m_Code}
+	</update>
+	
+	<!-- 페이징 리스트 카운트 -->
+	<select id="selectListCnt_D" resultType="Integer">
+		SELECT COUNT(*) 
+		FROM TRAVELSCHEDULE
+	</select>
+
+	<!-- ================================보미================================== -->
+	<!-- 회원가입 -->
+	<insert id="insertM" parameterType="Member">
+		INSERT INTO TWTMEMBER VALUES
+		('M'||M_SEQ.NEXTVAL,#{m_Id},#{m_Pass},#{m_Name},#{m_Email},#{m_Api,jdbcType=VARCHAR},'N')
+	</insert>
+
+	<!-- 회원탈퇴 -->
+	<delete id="deleteUserM" parameterType="String">
+		DELETE FROM TWTMEMBER
+		WHERE M_CODE = #{m_Code}
+	</delete>
+
+	<!-- 로그인 -->
+	<select id="loginM" resultType="Member">
+		SELECT * FROM TWTMEMBER WHERE
+		M_ID = #{m_Id}
+	</select>
+
+	<!-- 로그인 시 중복되는 아이디 있나 체크 -->
+	<select id="loginIdChk" resultType="int">
+		SELECT COUNT(*) FROM TWTMEMBER WHERE M_ID = #{m_Id}
+	</select>
+
+	<!-- 로그인 시 디비에 저장된 비밀번호 체크 -->
+	<select id="loginPwdChk" resultType="int">
+		SELECT COUNT(*) FROM TWTMEMBER WHERE M_PASS = #{m_Pass}
+	</select>
+
+	<!-- 아이디 중복검사 -->
+	<select id="idChkM" resultType="int">
+		SELECT COUNT(*) FROM TWTMEMBER
+		WHERE M_ID = #{m_Id}
+	</select>
+
+	<!-- 유저 인증키 생성 -->
+	<update id="GetKey" parameterType="Member">
+		UPDATE TWTMEMBER SET
+		M_MAILCHECK = #{m_Mailcheck} WHERE M_ID = #{m_Id}
+	</update>
+
+	<!-- 유저 인증키(난수) Y로 변경 -->
+	<update id="alterUserKey" parameterType="Member">
+		UPDATE TWTMEMBER SET
+		M_MAILCHECK = 'Y' WHERE M_ID = #{m_Id} AND M_MAILCHECK = 'N'
+	</update>
+
+	<!-- 항공권 조회 -->
+	<select id="selectAllAirM" resultType="AirplaneInfo">
+		SELECT * FROM AIRPLANEINFO
+		WHERE M_CODE = #{m_Code}
+	</select>
+
+	<!-- 항공권 입력 -->
+	<insert id="insertAirM" parameterType="AirplaneInfo">
+		INSERT INTO AIRPLANEINFO
+		VALUES (#{m_Code},#{dep_Loca1},#{dep_Loca2},#{dep_Date1},
+		#{dep_Date2},#{dep_Time1},#{dep_Time2},#{re_Loca1},
+		#{re_Loca2},#{re_Date1},#{re_Date2},#{re_Time1},#{re_Time2},'AIR'||AIR_SEQ.NEXTVAL)
+	</insert>
+
+	<!-- 항공권 수정 -->
+	<update id="updateAirM" parameterType="AirplaneInfo">
+		UPDATE AIRPLANEINFO SET
+		DEP_LOCA1 = #{dep_Loca1}, DEP_LOCA2 = #{dep_Loca2}, DEP_DATE1 =
+		#{dep_Date1}, DEP_DATE2 = #{dep_Date2},
+		DEP_TIME1 = #{dep_Time1},
+		DEP_TIME2 = #{dep_Time2}, RE_LOCA1 = #{re_Loca1},
+		RE_LOCA2 =
+		#{re_Loca2}, RE_DATE1 = #{re_Date1}, RE_DATE2 = #{re_Date2},
+		RE_TIME1 =
+		#{re_Time1}, RE_TIME2 = #{re_Time2} WHERE AIR_CODE = #{air_Code}
+	</update>
+
+	<!-- 항공권 정보 삭제 -->
+	<delete id="deleteAirM" parameterType="String">
+		DELETE FROM AIRPLANEINFO
+		WHERE AIR_CODE = #{air_Code}
+	</delete>
+
+	<!-- 아이디를 통해 로그인 한 멤버의 모든 정보 알기위함 -->
+	<select id="loginSelectOne" parameterType="Member"
+		resultType="Member">
+		SELECT *
+		FROM TWTMEMBER
+		WHERE M_ID = #{m_Id}
+	</select>
+
+	<!-- 비밀번호 변경 -->
+	<update id="updateM" parameterType="Member">
+		UPDATE TWTMEMBER SET
+		M_PASS =
+		#{m_Pass} WHERE M_ID = #{m_Id}
+	</update>
+
+	<!-- 회원 임시 비밀번호 -->
+	<update id="searchPasswordM" parameterType="Member">
+		UPDATE TWTMEMBER SET
+		M_PASS = #{m_Pass} WHERE M_ID = #{m_Id} AND M_EMAIL = #{m_Email}
+	</update>
+
+	<!-- 호텔 예약 조회 -->
+	<select id="selectAllBookM" resultType="HotelBooking">
+		SELECT * FROM HBOOKING
+		WHERE M_Code = #{m_Code}
+	</select>
+
+	<!-- 소셜 로그인 시 자동 회원가입 -->
+	<insert id="insertSNSM" parameterType="Member">
+		INSERT INTO TWTMEMBER
+		VALUES
+		('M'||M_SEQ.NEXTVAL,#{m_Id},#{m_Pass},#{m_Name},#{m_Email},#{m_Api,jdbcType=VARCHAR},'Y')
+	</insert>
+
+	<!-- 찜 목록 갯수 조회 -->
+	<select id="likeM" resultType="TravelSchedule" parameterType="TravelSchedule">
+		SELECT * FROM FAVORITE_LIST F JOIN TRAVELSCHEDULE T ON (F.FL_CODE = T.TS_CODE) WHERE FL_CHECK='Y' AND F.M_CODE = #{m_Code}
+	</select>
+	
+	<!-- 내가 쓴 일정 조회 -->
+	<select id="routeM" resultType="TravelSchedule" parameterType="TravelSchedule">
+	    SELECT * FROM TRAVELSCHEDULE WHERE M_CODE = #{m_Code}
+	</select>
+	
+	<!-- 전체 회원 조회 -->
+	<select id="allmemberM" resultType="Member">
+	   SELECT * FROM TWTMEMBER
+	</select>
+	
+	<!-- 아이디 찾기 -->
+	<select id="findIdM" resultType="String">
+	   SELECT M_ID FROM TWTMEMBER WHERE M_EMAIL = #{m_Email}
+	</select>
+
+    <!-- 호텔 이름 조회 -->
+    <select id="hotelM" resultType="Hotel">
+       SELECT H_NAME FROM HOTEL H JOIN HBOOKING B USING(H_CODE) WHERE B.M_CODE = #{m_Code}
+    </select>
+    
+    <!-- 별점 부여 -->
+    <insert id="insertStarM" parameterType="HotelReview">
+       INSERT INTO HOTELREVIEW VALUES ('HRV'||HRV_SEQ.NEXTVAL,#{hr_Code},#{hb_Code},#{h_Code},#{m_Code},#{hrv_Starn})
+    </insert>
+    
+    <!-- 별점 조회 -->
+    <select id="selectStarM" resultType="HotelReview">
+       SELECT HRV_STARN FROM HOTELREVIEW WHERE M_CODE = #{m_Code}
+    </select>
+    
+    <!-- 별점 업뎃 -->
+    <update id="updateStarM" parameterType="hashmap">
+       UPDATE HOTEL SET H_STARN = #{star} WHERE H_CODE = #{h_Code}
+    </update>
+
+    <!-- 업데이트할 호텔의 평점 가져오기 -->
+    <select id="selectHotelStarM" resultType="Hotel">
+       SELECT H_STARN FROM HOTEL WHERE H_CODE = #{h_Code}
+    </select>    
+
+	<!-- ================================찬우================================== -->
+	
+	
+	<!-- 메인 호텔 예약많은 순으로 4개 검색 -->
+	 
+	<select id="main_hotel" resultType="Hotel">
+			SELECT TB.*
+		FROM (
+			SELECT ROWNUM as rn, ht.*
+		<include refid="hotelInc" />
+			ORDER BY H_BOOKCNT) TB
+		<![CDATA[
+		WHERE ROWNUM <= 6
+		]]>
+	</select>
+	
+	
+	<!-- 메인 관광지 4개 travelschedule_day테이블에서 tp_code많은순 -->
+	
+  	<select id="main_Destination" resultType="TravelPoint">
+		<![CDATA[
+		WITH BB AS 
+		(SELECT TP_CODE, COUNT(*) CC 
+		FROM TRAVELSCHEDULE_DAY 
+		GROUP BY TP_CODE ORDER BY COUNT(*) DESC) 
+		SELECT t1.TP_CODE, CITY_CODE, TP_NAME, TP_LATI, TP_LONG, TP_TYPE, TP_CONTENT, TP_IMG, TP_ADDR, CC 
+		FROM TRAVELPOINT T1, BB T2 WHERE T1.TP_CODE = T2.TP_CODE AND ROWNUM <=6 ORDER BY CC DESC
+		]]>
+	</select>
+	
+	<!-- 메인 일정 4개 조회순높은순 -->
+	
+	<select id="main_Plan" resultType="TravelSchedule">
+		<![CDATA[
+		SELECT TS.TS_CODE, TS.M_CODE, TS.TP_CODE, TS.TS_TITLE, TS.TS_SDAY, TS.TS_THEME, 
+		TS.TS_PEOPLE, TS.TS_THUM, TS.TS_PERIOD, TS.TS_DATE, TS.TS_VIEW, M.M_NAME, TP.CITY_CODE, TP.TP_IMG 
+		FROM TRAVELSCHEDULE TS
+		LEFT JOIN TWTMEMBER M ON (TS.M_CODE = M.M_CODE) 
+		LEFT JOIN TRAVELPOINT TP ON(TS.TP_CODE = TP.TP_CODE) 
+		WHERE ROWNUM <= 4
+		ORDER BY TS_VIEW DESC
+		]]>
+	</select>
+	
+	  
+	<update id="reservation_Hotel" parameterType="String">
+		UPDATE HOTEL 
+		SET H_BOOKCNT = H_BOOKCNT+1 
+		WHERE H_NAME = #{hotelname}
+	</update>
+	
+	<insert id="reservation_insert" parameterType="HotelReservation">
+		 INSERT INTO HBOOKING VALUES('HB'||HB_SEQ.NEXTVAL,#{m_code},#{reservation_hr_code},#{reservation_h_code},#{checkin_date},#{checkout_date},#{hb_check},#{hb_people},#{reservation_name},SYSDATE)
+    </insert>
+	
+
+
+	<!-- ================================수지================================== -->
+	<!-- 모든 city 정보 불러오기 -->
+	<select id="selectcityall_S" resultType="City">
+		SELECT * FROM CITY
+	</select>
+
+	<!-- 선택된 city spot 모두 불러오기 -->
+	<select id="selectallspot_S" resultType="TravelPoint">
+		SELECT * FROM TRAVELPOINT ORDER BY SUBSTR(CITY_CODE, 3), TO_NUMBER(SUBSTR(TP_CODE, 3))
+	</select>
+
+	<!-- 선택된 city 정보 불러오기 -->
+	<select id="selectcityone_S" resultType="City" parameterType="String">
+		SELECT * FROM CITY WHERE CITY_CODE = #{citycode}
+	</select>
+	
+	
+
+	<!-- ================================철환================================== -->
+	<!-- 선택된 city spot 불러오기 -->
+	<select id="selectcityspot" resultType="TravelPoint">
+		SELECT * FROM TRAVELPOINT WHERE CITY_CODE = #{citycode} ORDER BY SUBSTR(CITY_CODE, 3), TO_NUMBER(SUBSTR(TP_CODE, 3))
+	</select>
+	<!-- 일정 추가하기 -->
+	<insert id="insertschedule" parameterType="TravelSchedule"
+		useGeneratedKeys="true">
+		INSERT INTO TRAVELSCHEDULE
+		VALUES('TS11'||TS_SEQ.NEXTVAL, #{m_Code}, NULL, #{ts_Title}, #{ts_Sday}, #{ts_Theme}, #{ts_People}, #{ts_Thum}, #{ts_Period}, SYSDATE, 0)
+		<selectKey keyProperty="re_Code" resultType="int"
+			order="AFTER">
+			SELECT TS_SEQ.CURRVAL FROM DUAL
+		</selectKey>
+	</insert>
+	<!-- scheduleday 추가하기 -->
+	<insert id="insertscheduleday" parameterType="TravelScheduleDay">
+		INSERT INTO
+		TRAVELSCHEDULE_DAY
+		VALUES(#{ts_Day}, #{ts_Code}, #{tp_Code}, #{ts_Memo}, #{ts_Money})
+	</insert>
+
+
+</mapper>
+	
+	
